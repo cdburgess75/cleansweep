@@ -1,36 +1,35 @@
 ---
 
-# ⚡ **Automated PUP & Malware Remediation Engine**
+# ⚡ **Dave's CleanSweep**
+
+---
 
 <details>
-<summary><strong>📑 Table of Contents</strong></summary>
+<summary><strong>📘 Overview</strong></summary>
 
-- **Overview**
-- **Key Features**
-- **How It Works**
-- **Why This Exists**
-- **Ideal Use Cases**
+A fully automated remediation framework engineered to **detect and eliminate PUPs, browser hijackers, adware, and persistent malware mechanisms** across a hardened **21‑phase cleanup pipeline**.
+
+Compatible with **PowerShell 3.0 → 7.x**, dynamically adapting behavior based on the detected runtime environment.
 
 </details>
 
 ---
 
-## ⚙️ **Overview**
-A fully automated remediation framework engineered to **detect and eliminate PUPs, browser hijackers, adware, and persistent malware mechanisms** across a hardened **21‑phase cleanup pipeline**.
+<details>
+<summary><strong>🚀 Key Features</strong></summary>
 
-Compatible with **PowerShell 3.0 → 7.x**, dynamically adapting behavior based on the detected runtime environment.
-
----
-
-## 🚀 **Key Features**
 - **21‑Phase Pipeline** — deep‑cleaning across autoruns, services, WMI, scheduled tasks, browser configs, and more.  
 - **Adaptive PS Compatibility** — intelligently adjusts logic for legacy and modern PowerShell hosts.  
 - **Persistence Neutralization** — targets common and obscure footholds used by malware.  
 - **Hands‑Off Automation** — predictable, unattended execution with clear logging.
 
+</details>
+
 ---
 
-## 🧩 **How It Works**
+<details>
+<summary><strong>🧩 How It Works</strong></summary>
+
 1. **Environment Profiling**  
    Detects PowerShell version, OS build, and available modules.
 
@@ -43,18 +42,28 @@ Compatible with **PowerShell 3.0 → 7.x**, dynamically adapting behavior based 
 4. **Cleanup & Hardening**  
    Restores defaults, removes artifacts, and reinforces system integrity.
 
+</details>
+
 ---
 
-## 🛠️ **Why This Exists**
+<details>
+<summary><strong>🛠️ Why This Exists</strong></summary>
+
 Because malware removal shouldn’t feel like digital archaeology.  
 This project provides a **repeatable, transparent, aggressive** workflow that cuts through noise and delivers results.
 
+</details>
+
 ---
 
-## 🎯 **Ideal Use Cases**
+<details>
+<summary><strong>🎯 Ideal Use Cases</strong></summary>
+
 - **Incident Responders**  
 - **Sysadmins**  
 - **Helpdesk Teams**  
 - **Power Users**  
+
+</details>
 
 ---
