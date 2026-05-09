@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="CleanSweep.png" alt="Dave's CleanSweep Logo" width="160"/>
+<img src="/assets/CleanSweep.png" alt="Dave's CleanSweep Logo" width="160"/>
 
 # Dave's CleanSweep
 
