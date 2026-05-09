@@ -205,8 +205,6 @@ Full changelog in script header.
 ## 👤 Author
 
 **C. David Burgess**  
-[PTech LLC](https://ptechllc.com) — Managed IT Services  
-dave@ptechllc.com
 
 ---
 
