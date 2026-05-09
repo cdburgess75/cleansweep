@@ -2,7 +2,7 @@
 
 <img src="/assets/CleanSweep.png" alt="Dave's CleanSweep Logo" width="160"/>
 
-# Dave's CleanSweep
+# CleanSweep
 
 **Enterprise PUP, Adware & Malware IOC Remediation Tool**  
 *Automated. Silent. RMM-Ready.*
