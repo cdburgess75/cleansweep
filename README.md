@@ -1,72 +1,38 @@
----
-# Dave's CleanSweep 🧹
+# 🧹 Dave's CleanSweep
 
-Automated system cleanup and malware persistence removal across 21 remediation phases.  
-Built for PowerShell 3.0–7.x with intelligent version-aware execution.
+**Automated Windows cleanup & malware persistence remediation engine**
 
----
-Automated PUP & Malware Remediation Engine
+CleanSweep is a PowerShell-based remediation toolkit designed to detect and remove common persistence mechanisms, PUPs, and malware artifacts across **21 structured cleanup phases**.
 
-<details>
-<summary><strong>📘 Overview</strong></summary>
-
-A fully automated remediation framework engineered to **detect and eliminate PUPs, browser hijackers, adware, and persistent malware mechanisms** across a hardened **21‑phase cleanup pipeline**.
-
-Compatible with **PowerShell 3.0 → 7.x**, dynamically adapting behavior based on the detected runtime environment.
-
-</details>
+Built for **PowerShell 3.0–7.x** with adaptive, version-aware execution.
 
 ---
 
-<details>
-<summary><strong>🚀 Key Features</strong></summary>
+## 🚀 Features
 
-- **21‑Phase Pipeline** — deep‑cleaning across autoruns, services, WMI, scheduled tasks, browser configs, and more.  
-- **Adaptive PS Compatibility** — intelligently adjusts logic for legacy and modern PowerShell hosts.  
-- **Persistence Neutralization** — targets common and obscure footholds used by malware.  
-- **Hands‑Off Automation** — predictable, unattended execution with clear logging.
-
-</details>
-
----
-
-<details>
-<summary><strong>🧩 How It Works</strong></summary>
-
-1. **Environment Profiling**  
-   Detects PowerShell version, OS build, and available modules.
-
-2. **Threat Discovery**  
-   Identifies suspicious processes, autoruns, browser hijacks, and PUP signatures.
-
-3. **21 Remediation Phases**  
-   Each phase targets a specific threat vector or persistence layer.
-
-4. **Cleanup & Hardening**  
-   Restores defaults, removes artifacts, and reinforces system integrity.
-
-</details>
+- ✅ Multi-phase remediation engine (21 structured stages)
+- ✅ Removes common malware persistence mechanisms
+- ✅ Targets PUPs (Potentially Unwanted Programs)
+- ✅ Works across legacy and modern PowerShell versions (3.0–7.x)
+- ✅ Version-aware execution logic for maximum compatibility
+- ✅ Modular and extensible design
 
 ---
 
-<details>
-<summary><strong>🛠️ Why This Exists</strong></summary>
+## 🧠 What It Does
 
-Because malware removal shouldn’t feel like digital archaeology.  
-This project provides a **repeatable, transparent, aggressive** workflow that cuts through noise and delivers results.
+CleanSweep performs a systematic cleanup of a Windows environment by:
 
-</details>
-
----
-
-<details>
-<summary><strong>🎯 Ideal Use Cases</strong></summary>
-
-- **Incident Responders**  
-- **Sysadmins**  
-- **Helpdesk Teams**  
-- **Power Users**  
-
-</details>
+- Identifying and removing persistence points:
+  - Registry run keys
+  - Scheduled tasks
+  - Startup folders
+- Detecting suspicious or orphaned artifacts
+- Cleaning residual files, temp data, and common infection vectors
+- Standardizing remediation steps across environments
 
 ---
+
+## 📦 Project Structure
+
+``
