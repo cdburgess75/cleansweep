@@ -1,17 +1,19 @@
-<!-- LOGO -->
+<!-- LOGO (auto switches for GitHub light/dark mode) -->
 <p align="center">
-  <img src="assets/sk-logo-light.png" width="300">
+  <picture>
+    <!-- GitHub dark mode -->
+    <source srcset="assets/banner-light.png" media="(prefers-color-scheme: dark)">
+    <!-- GitHub light mode -->
+    <img src="assets/banner-dark.png" width="600">
+  </picture>
 </p>
 
-<!-- TITLE -->
 <h1 align="center">SK – ShellKnight</h1>
 
-<!-- TAGLINE -->
 <p align="center">
   PowerShell remediation, cleanup, and operational tooling
 </p>
 
-<!-- BADGES -->
 <p align="center">
   <img src="assets/badges/powershell.svg">
   <img src="assets/badges/version.svg">
