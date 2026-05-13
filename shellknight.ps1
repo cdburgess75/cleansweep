@@ -1,8 +1,8 @@
-﻿#Requires -Version 3.0
+#Requires -Version 3.0
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    ShellKnight v0.73  -  Enterprise Endpoint Security & Remediation Tool
+    ShellKnight v0.76  -  Enterprise Endpoint Security & Remediation Tool
 
 .DESCRIPTION
     Automated removal of PUPs, browser hijackers, adware, and malware persistence
@@ -14,14 +14,14 @@
     PS 6.x / 7.x   -  Full compatibility, enhanced CIM session handling
 
 .NOTES
-    Version    : v0.73
+    Version    : v0.76
     Author     : Dave
     Requires   : PowerShell 3.0+, Administrator privileges
     Log Path   : C:\ProgramData\ShellKnight\Logs\ShellKnight_<DATE>_<TIME>.log
     Exit Codes : 0 = Clean / Success  |  1 = Errors  |  2 = IOC Alerts present
 
     ==============================================================================
-    PHASE OVERVIEW v0.73
+    PHASE OVERVIEW v0.76
     ==============================================================================
 
     Phase  0  -  Hardware & OS Detection
@@ -119,6 +119,56 @@
     ==============================================================================
     CHANGELOG
     ==============================================================================
+
+    v0.76 - MBSetup.exe added to legit drop file whitelist (Malwarebytes installer).
+            PCDr and BundleApplicationRepairTool added to legit task paths whitelist.
+            QBDataServiceUser exclusion expanded to cover accounts 20-35.
+            QBDataServiceUser pattern added to inactive account exclusion list.
+            defaultuser100000 and defaultuser pattern added to stale profile exclusions.
+            COMODO Antivirus service detection added to AV report.
+            ScreenConnect AppData scan glob pattern improved for reliability.
+            Banner Action Required padding fixed - right border aligns on all lengths.
+            Hardening: $SK_DisableSMBv1 (default off) - auto-disables SMBv1.
+            Hardening: $SK_DisableLLMNR (default off) - disables LLMNR via registry.
+            Hardening: $SK_EnforceRDP_NLA (default off) - enforces NLA on RDP.
+            All three hardening actions logged as [HARDEN], counted separately.
+            Version : v0.75 -> v0.76 per versioning rule.
+
+    v0.75 - Banner padding fixed: All Clear and Action Required right border now align.
+            mssplus.mcafee.com added to hosts file whitelist (legitimate McAfee block).
+            ScreenConnect rogue instance detection: $SK_ScreenConnect_InstanceID config,
+            $SK_RemoveRogueScreenConnect (default true). Scans AppData ClickOnce paths,
+            extracts instance ID, compares to managed ID. If not in Add/Remove Programs
+            and instance ID does not match: stops service, removes service, deletes folder.
+            Legitimate installs in Add/Remove Programs never touched regardless of ID.
+            PUA expansion: 31 new targets including OneLaunch, TLauncher, WiseCare,
+            PCCleaner, BitCleaner, PCHelpSoft, iTopVPN, VPNProxyMaster, GlobalHop,
+            Infatica, Microleaves, UniversalBrowserSolutions, WebBrowserSolutions,
+            ClearBar, Wave, ConvertMate, Calendaromatic, CleverSort, Artificus,
+            PDFFlex, SSDFresh, MillennialMedia, NibblrAI, SparkOnSoft, Blaze,
+            WirelessNetworkTool, Rostpay, ZoomInfo (flag only), MediaArena,
+            RiskWare.ProcessHacker/NSudo (WARN only).
+            TrojanFolderIOCs: dcrat, darkgate, hijackloader added.
+            Malware detection: RiskWare.GameHack, Exploit.CVE202121551 (Dell dbutil),
+            RiskWare.Crack, CoinMiner process detection.
+            Hosts IOC: wavebrowser.co, activesearchbar.me, customsearchbar.me,
+            webnavigator.co added to suspicious domain patterns.
+            Version : v0.74 -> v0.75 per versioning rule.
+
+    v0.74 - Hardening actions separated from removals in report/counters.
+            Audit policy WARN suppressed when enable succeeds.
+            Stale profile size calc capped at 10 profiles max for performance.
+            QBDataServiceUser* and defaultuser0 added to stale profile exclusions.
+            RDP/NLA and password policy feed into security score.
+            Age-based temp cleanup: $SK_AggressiveTempClean,
+            $SK_TempCleanAgeThresholdDays (default 30 days).
+            AgentInstall.exe and handle.exe added to legit drop file whitelist.
+            Banner: 'Sweeping' replaced with 'Action Required'.
+            Banner padding fixed for both verdict banners.
+            Stale profile deletion: $SK_DeleteStaleProfiles (default off),
+            $SK_DeleteStaleProfileDays (1095/3yr), $SK_DeleteStaleProfileOnServer
+            (default off). Account must be disabled/absent. Manifest saved to JSON.
+            Version : v0.73 -> v0.74 per versioning rule.
 
     v0.73 - Fixed LegitProcessNames StrictMode VariableIsUndefined error:
             moved definition before Phase 3 (was defined after Phase 8).
@@ -456,8 +506,32 @@ $SK_Syslog_Protocol = 'UDP'                     # UDP or TCP
 $SK_Syslog_Facility = 16                        # 16 = local0 (standard for security tools)
 
 # --- MALWAREBAZAAR ---
-$SK_MalwareBazaar_Enabled = $true
+$SK_MalwareBazaar_Enabled = $false
 $SK_MalwareBazaar_ApiKey  = ''
+
+# --- HARDENING OPTIONS ---
+$SK_DisableSMBv1   = $false         # Set $true to auto-disable SMBv1
+                                     # WARNING: verify no legacy devices need SMBv1 first
+$SK_DisableLLMNR   = $false         # Set $true to disable LLMNR via registry
+                                     # LLMNR is a common MITM attack vector
+$SK_EnforceRDP_NLA = $false         # Set $true to enforce NLA on RDP if RDP is enabled
+                                     # Requires all RDP clients to support NLA
+
+# --- SCREENCONNECT ROGUE INSTANCE DETECTION ---
+$SK_ScreenConnect_InstanceID   = '32f7367870097776'  # Your managed SC instance ID
+                                                      # Leave blank to flag ALL AppData instances
+$SK_RemoveRogueScreenConnect   = $true               # Auto-remove non-matching AppData instances
+                                                      # Safe: never removes if in Add/Remove Programs
+
+# --- TEMP FILE CLEANUP ---
+$SK_AggressiveTempClean       = $true           # Clean temp files older than threshold (default: on)
+$SK_TempCleanAgeThresholdDays = 30              # Only clean temp files older than this many days
+
+# --- STALE PROFILE DELETION ---
+$SK_DeleteStaleProfiles        = $false          # Set $true to auto-delete stale profiles
+$SK_DeleteStaleProfileDays     = 1095            # Days inactive before deletion (default: 3 years)
+$SK_DeleteStaleProfileOnServer = $false          # Never delete on Server OS unless explicitly enabled
+$SK_DeleteStaleProfileMinSizeGB = 0.1            # Skip profiles smaller than this (likely system profiles)
 
 # --- ACCOUNT MANAGEMENT ---
 $SK_AutoDisableInactiveAccounts = $false        # Set $true to auto-disable inactive local accounts
@@ -509,7 +583,7 @@ trap {
 # ==================================================================================================
 Write-Host ""
 Write-Host ("  " + ("=" * 78)) -ForegroundColor Cyan
-Write-Host ("  ShellKnight v0.73  |  $env:COMPUTERNAME  |  $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')  |  PS $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)") -ForegroundColor Cyan
+Write-Host ("  ShellKnight v0.76  |  $env:COMPUTERNAME  |  $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')  |  PS $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)") -ForegroundColor Cyan
 Write-Host ("  " + ("=" * 78)) -ForegroundColor Cyan
 Write-Host ""
 
@@ -544,7 +618,7 @@ try {
 
 $Script:Config = @{
     Name                    = "ShellKnight"
-    Version                 = 'v0.73'
+    Version                 = 'v0.76'
     LogDir                  = 'C:\ProgramData\ShellKnight\Logs'
     CacheDir                = 'C:\ProgramData\ShellKnight\Intel'
     JsonDir                 = 'C:\ProgramData\ShellKnight\JSON'
@@ -563,6 +637,21 @@ $Script:Config = @{
     SmtpTo                  = $SK_Email_To
     SmtpUser                = $SK_Email_User
     SmtpPass                = $SK_Email_Pass
+    # Hardening options
+    DisableSMBv1              = $SK_DisableSMBv1
+    DisableLLMNR              = $SK_DisableLLMNR
+    EnforceRDP_NLA            = $SK_EnforceRDP_NLA
+    # ScreenConnect rogue instance detection
+    SCInstanceID              = $SK_ScreenConnect_InstanceID
+    SCRemoveRogue             = $SK_RemoveRogueScreenConnect
+    # Temp cleanup  -  wired from top-of-file config
+    AggressiveTempClean         = $SK_AggressiveTempClean
+    TempCleanAgeThresholdDays   = $SK_TempCleanAgeThresholdDays
+    # Stale profile deletion  -  wired from top-of-file config
+    DeleteStaleProfiles         = $SK_DeleteStaleProfiles
+    DeleteStaleProfileDays      = $SK_DeleteStaleProfileDays
+    DeleteStaleProfileOnServer  = $SK_DeleteStaleProfileOnServer
+    DeleteStaleProfileMinSizeGB = $SK_DeleteStaleProfileMinSizeGB
     # Account management  -  wired from top-of-file config
     AutoDisableInactiveAccounts = $SK_AutoDisableInactiveAccounts
     AutoDisableThresholdDays    = $SK_AutoDisableThresholdDays
@@ -596,6 +685,7 @@ $Script:Config.C2Cache      = [System.IO.Path]::Combine($Script:Config.CacheDir,
 
 $Script:Counters = @{
     ActionsTaken    = 0
+    HardeningDone   = 0
     IOCsFound       = 0
     ProcessesKilled = 0
     ServicesRemoved = 0
@@ -665,6 +755,18 @@ function Log-Success { param([string]$m) Write-Log -Message $m -Level SUCCESS }
 function Log-Warn    { param([string]$m) Write-Log -Message $m -Level WARN    }
 function Log-Fail    { param([string]$m) Write-Log -Message $m -Level FAILED  }
 function Log-IOC     { param([string]$m) Write-Log -Message $m -Level IOC     }
+function Log-Harden  {
+    param([string]$m)
+    # Hardening actions logged as SUCCESS visually but counted separately
+    $ts     = [datetime]::Now.ToString('yyyy-MM-dd HH:mm:ss')
+    $padded = '[HARDEN]  '
+    $line   = "$ts  $padded $m"
+    if ($Script:LogReady -and $Script:LogWriter -and ($Script:LogWriter.BaseStream -ne $null)) {
+        try { $Script:LogWriter.WriteLine($line) } catch { }
+    }
+    Write-Host $line -ForegroundColor Cyan
+    $Script:Counters.HardeningDone++
+}
 
 # Test a string against the dynamic filename IOC index (HashSet + chunked regex)
 function Test-DynamicFileIOC {
@@ -722,7 +824,19 @@ $_p = ('pdf'+'tool')+'|'+('pdf'+'ast')+'|'+('pdf'+'fast')+'|'+
       ('vo'+'package')+'|searchenginehijack|'+
       ('avan'+'quest')+'|'+('driver'+'support')+'|'+
       ('winzip'+'disktools')+'|'+('auslogics'+'driverupdater')+'|'+
-      ('pdf'+'sparkware')
+      ('pdf'+'sparkware')+'|'+
+      # New v0.75 PUA additions
+      ('one'+'launch')+'|'+('t'+'launcher')+'|'+('wise'+'care')+'|'+
+      ('pc'+'cleaner')+'|'+('bit'+'cleaner')+'|'+('pc'+'helpsoft')+'|'+
+      ('convert'+'mate')+'|'+('calendar'+'omatic')+'|'+
+      ('universal'+'browsersolutions')+'|'+('web'+'browsersolutions')+'|'+
+      ('clear'+'bar')+'|'+('wave'+'browser')+'|wavebrowser.co|'+
+      ('media'+'arena')+'|'+('clever'+'sort')+'|'+('artif'+'icus')+'|'+
+      ('pdf'+'flex')+'|'+('ssd'+'fresh')+'|'+('millennial'+'media')+'|'+
+      ('nibblr'+'ai')+'|'+('spark'+'onsoft')+'|blaze+'+'browser|'+
+      ('wireless'+'networktool')+'|'+('rost'+'pay')+'|'+
+      ('itop'+'vpn')+'|'+('vpnproxy'+'master')+'|'+('global'+'hop')+'|'+
+      ('infa'+'tica')+'|'+('micro'+'leaves')
 $_opts = [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor
          [System.Text.RegularExpressions.RegexOptions]::Compiled
 $Script:Targets = New-Object System.Text.RegularExpressions.Regex($_p, $_opts)
@@ -752,6 +866,8 @@ $Script:TrojanFolderIOCs = New-Object 'System.Collections.Generic.HashSet[string
     ('urs'+'nif'),       ('zlo'+'ader'),       ('goot'+'kit'),
     ('smoke'+'loader'),  ('cryp'+'tbot'),      ('ice'+'did'),
     ('bumble'+'bee')
+    # v0.75 additions
+    'dcrat','darkgate','hijackloader'
 ) | ForEach-Object { $null = $Script:TrojanFolderIOCs.Add($_) }
 
 $Script:HijackerExtensionIDs = New-Object 'System.Collections.Generic.HashSet[string]'(
@@ -786,7 +902,13 @@ $Script:PUPFolderNames = @(
     'PulseBrowser','BrightData','BlazerBrowser','ShiftBrowser','EpiBrowser',
     'CustomSearchBar','ActiveSearchBar','VOPackage','SearchEngineHijack',
     'Avanquest','DriverSupport','WinZipDiskTools','AuslogicsDriverUpdater',
-    'PDFSparkware'
+    'PDFSparkware',
+    # v0.75 additions
+    'OneLaunch','TLauncher','WiseCare','PCCleaner','BitCleaner','PCHelpSoft',
+    'ConvertMate','Calendaromatic','UniversalBrowserSolutions','WebBrowserSolutions',
+    'ClearBar','WaveBrowser','MediaArena','CleverSort','Artificus','PDFFlex',
+    'SSDFresh','MillennialMedia','NibblrAI','SparkOnSoft','Blaze','WirelessNetworkTool',
+    'Rostpay','iTopVPN','VPNProxyMaster','GlobalHop','Infatica','Microleaves'
 )
 
 # Conservative hardcoded service targets (high false-positive risk  -  do not expand lightly)
@@ -854,7 +976,9 @@ $Script:LegitTaskPaths = @(
     '*\AppData\Roaming\Discord\*',
     '*\AppData\Roaming\Cricut*',
     '*\AppData\Local\Cricut*',
-    '*\Program Files*\Cricut*'
+    '*\Program Files*\Cricut*',
+    '*\AppData\Roaming\PCDr\*',             # Dell PC-Doctor / SupportAssist repair tool
+    '*BundleApplicationRepairTool.exe*'     # Dell SupportAssist repair launcher
 )
 
 # Legitimate process names  -  never killed by Phase 3
@@ -913,16 +1037,20 @@ function Get-FolderFileCount {
 }
 
 function Remove-FolderContents {
-    param([string]$Path, [string]$Label)
+    param([string]$Path, [string]$Label, [int]$OlderThanDays = 0)
     if (-not (Test-Path -LiteralPath $Path)) { return }
 
     # Before snapshot
     $beforeCount = Get-FolderFileCount $Path
     $beforeBytes = Get-FolderSizeBytes $Path
 
+    $cutoffDate = if ($OlderThanDays -gt 0) { (Get-Date).AddDays(-$OlderThanDays) } else { $null }
+
     [long]$freed = 0
     Get-ChildItem -LiteralPath $Path -Force -ErrorAction SilentlyContinue | ForEach-Object {
         try {
+            # Skip files newer than cutoff if age filter active
+            if ($cutoffDate -and $_.LastWriteTime -gt $cutoffDate) { return }
             $size = if ($_.PSIsContainer) { Get-FolderSizeBytes $_.FullName } else { [long]$_.Length }
             Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction Stop
             $freed += $size
@@ -1300,6 +1428,10 @@ try {
             'vkservice'                  = 'Vipre'
             'bdredline'                  = 'Bitdefender'
             'VSSERV'                     = 'Bitdefender'
+            # COMODO
+            'CAV'                        = 'COMODO Antivirus'
+            'cmdagent'                   = 'COMODO Internet Security'
+            'cavwp'                      = 'COMODO Antivirus'
         }
         $foundAv = @()
         foreach ($svcName in $knownAvServices.Keys) {
@@ -2001,13 +2133,22 @@ if (Test-Path -LiteralPath $hostsPath) {
         } else {
             # Check known-legitimate custom hosts entries  -  suppress from IOC flagging
             $isLegitCustom = $false
-            $legitHostDomains = @('granicus.com', 'mediavault.granicus', 'idrac.local', 'drac.local', 'ilo.local')
+            $legitHostDomains = @('granicus.com', 'mediavault.granicus', 'idrac.local', 'drac.local', 'ilo.local',
+                                   'mssplus.mcafee.com')   # McAfee telemetry block - commonly added by admins after McAfee removal
             foreach ($d in $legitHostDomains) {
                 if ($line -match [regex]::Escape($d)) { $isLegitCustom = $true; break }
             }
             # Only flag non-empty non-legitimate lines
             if ($line.Trim() -ne '' -and -not $isLegitCustom) {
                 Log-IOC "Non-standard hosts entry (review): $line"
+                # Check for known browser hijacker domains
+                $suspiciousDomains = @('wavebrowser.co','activesearchbar.me','customsearchbar.me','webnavigator.co')
+                foreach ($sd in $suspiciousDomains) {
+                    if ($line -match [regex]::Escape($sd)) {
+                        Log-IOC "  ^ Known browser hijacker domain: $sd"
+                        $Script:Counters.IOCsFound++
+                    }
+                }
             }
             $cleanLines.Add($line)
         }
@@ -2109,7 +2250,11 @@ $Script:LegitDropFileNames = New-Object 'System.Collections.Generic.HashSet[stri
 @(
     'CitrixReceiver.exe', 'CitrixWorkspaceApp.exe', 'CitrixWorkspaceAppWeb.exe',
     'ReceiverCleanupUtility.exe', 'ReceiverCleanupUtility-New.exe',
-    'CitrixReceiverEnterprise.exe', 'CitrixOnlinePluginFull.exe'
+    'CitrixReceiverEnterprise.exe', 'CitrixOnlinePluginFull.exe',
+    'AgentInstall.exe',             # Datto RMM agent installer
+    'handle.exe', 'handle64.exe',   # Sysinternals Handle utility
+    'PsExec.exe', 'PsExec64.exe',   # Sysinternals PsExec (flag as WARN not IOC)
+    'MBSetup.exe'                   # Malwarebytes installer
 ) | ForEach-Object { $null = $Script:LegitDropFileNames.Add($_) }
 
 foreach ($dropPath in $dropPaths) {
@@ -2121,6 +2266,156 @@ foreach ($dropPath in $dropPaths) {
         $null = $Script:IOCExePaths.Add($_.FullName)
     }
 }
+
+# ==================================================================================================
+# PHASE 15b: RISKWARE / EXPLOIT / SCREENCONNECT ROGUE INSTANCE DETECTION (v0.75)
+# ==================================================================================================
+Log-Info '--- Phase 15b: RiskWare/Exploit/ScreenConnect Detection ---'
+
+# RiskWare.GameHack / RiskWare.Crack
+try {
+    $hackPattern = [System.Text.RegularExpressions.Regex]::new(
+        ('game'+'hack')+'|'+('cheat'+'engine')+'|aimbot|wallhack|'+
+        ('game'+'crack')+'|crackorg|crackkey',
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor
+        [System.Text.RegularExpressions.RegexOptions]::Compiled)
+    $hackFolders = @()
+    @("$env:ProgramFiles","${env:ProgramFiles(x86)}","$env:LOCALAPPDATA","$env:APPDATA") |
+        Where-Object { Test-Path $_ } | ForEach-Object {
+            @(Get-ChildItem -LiteralPath $_ -Directory -Force -ErrorAction SilentlyContinue |
+              Where-Object { $hackPattern.IsMatch($_.Name) }) |
+              ForEach-Object { $hackFolders += $_.FullName }
+        }
+    if ($hackFolders.Count -gt 0) {
+        Log-IOC "RiskWare.GameHack/Crack  -  $($hackFolders.Count) suspect folder(s):"
+        foreach ($f in $hackFolders) { Log-IOC "  $f" }
+        $Script:Counters.IOCsFound += $hackFolders.Count
+    } else { Log-Info 'RiskWare.GameHack/Crack  -  none detected' }
+} catch { Log-Info "GameHack/Crack check skipped  -  $($_.Exception.Message)" }
+
+# CoinMiner process detection
+try {
+    $minerPattern = [System.Text.RegularExpressions.Regex]::new(
+        'xmrig|xmr-stak|'+('coin'+'miner')+'|nicehash|minerd|cgminer|bfgminer|ethminer|'+('crypto'+'miner'),
+        [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor
+        [System.Text.RegularExpressions.RegexOptions]::Compiled)
+    $minerProcs = @(Get-Process -ErrorAction SilentlyContinue |
+                    Where-Object { $minerPattern.IsMatch($_.Name) })
+    if ($minerProcs.Count -gt 0) {
+        Log-IOC "CoinMiner  -  $($minerProcs.Count) miner process(es) running:"
+        foreach ($p in $minerProcs) { Log-IOC "  PID $($p.Id): $($p.Name)  -  $($p.Path)" }
+        $Script:Counters.IOCsFound += $minerProcs.Count
+    } else { Log-Info 'CoinMiner  -  no miner processes detected' }
+} catch { Log-Info "CoinMiner check skipped  -  $($_.Exception.Message)" }
+
+# Exploit.CVE202121551 - Vulnerable Dell dbutil driver
+try {
+    $dbutilPaths = @(
+        "$env:SystemRoot\System32\drivers\dbutil_2_3.sys",
+        "$env:TEMP\dbutil_2_3.sys",
+        "$env:SystemRoot\Temp\dbutil_2_3.sys"
+    )
+    $dbutilFound = @($dbutilPaths | Where-Object { Test-Path -LiteralPath $_ })
+    if ($dbutilFound.Count -gt 0) {
+        Log-IOC "Exploit.CVE202121551  -  Vulnerable Dell dbutil_2_3.sys driver found:"
+        foreach ($d in $dbutilFound) { Log-IOC "  $d" }
+        $Script:Counters.IOCsFound += $dbutilFound.Count
+    } else { Log-Info 'Exploit.CVE202121551  -  vulnerable Dell driver not found' }
+} catch { Log-Info "CVE202121551 check skipped  -  $($_.Exception.Message)" }
+
+# RiskWare.ProcessHacker / NSudo - WARN only, do not remove
+try {
+    $riskWareNames = @('ProcessHacker','ProcessHacker2','ProcessHacker3','NSudo')
+    $foundRW = @(Get-Process -ErrorAction SilentlyContinue |
+                 Where-Object { $riskWareNames -contains $_.Name })
+    foreach ($p in $foundRW) {
+        Log-Warn "RiskWare running: $($p.Name) (PID $($p.Id))  -  privilege escalation tool, verify with user"
+    }
+} catch { }
+
+# ScreenConnect rogue instance detection and removal
+try {
+    $managedID   = $Script:Config.SCInstanceID
+    $removeRogue = $Script:Config.SCRemoveRogue
+
+    # Build list of what's in Add/Remove Programs
+    $arpNames = @(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+                                   'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+                  -ErrorAction SilentlyContinue | Select-Object -ExpandProperty DisplayName -ErrorAction SilentlyContinue |
+                  Where-Object { $_ -match 'screenconnect' })
+
+    # Scan all user AppData for ClickOnce ScreenConnect deployments
+    $userProfiles = @(Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue |
+                      Where-Object { $_.Name -notmatch '^(Public|Default|All Users)$' })
+
+    foreach ($profile in $userProfiles) {
+        $clickOncePath = Join-Path $profile.FullName 'AppData\Local\Apps\2.0'
+        if (-not (Test-Path -LiteralPath $clickOncePath)) { continue }
+
+        # Search for ScreenConnect ClientService executables recursively
+        $scExes = @(Get-ChildItem -LiteralPath $clickOncePath -Filter 'ScreenConnect.ClientService.exe' `
+                    -Recurse -Force -ErrorAction SilentlyContinue)
+
+        foreach ($scExe in $scExes) {
+            $scFolder = $scExe.DirectoryName
+            $instanceID = $null
+
+            # Try to extract instance ID from service registry
+            $svcKey = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services' -ErrorAction SilentlyContinue |
+                      Where-Object {
+                          $svc = Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue
+                          $svc.ImagePath -and $svc.ImagePath -match 'screenconnect' -and
+                          $svc.ImagePath -match [regex]::Escape($profile.Name)
+                      } | Select-Object -First 1
+
+            if ($svcKey) {
+                $imagePath = (Get-ItemProperty $svcKey.PSPath -ErrorAction SilentlyContinue).ImagePath
+                if ($imagePath -match '&s=([a-f0-9\-]{8,})') { $instanceID = $Matches[1] }
+            }
+
+            # Check if in Add/Remove Programs
+            $inARP = $arpNames | Where-Object { $_ -match 'screenconnect' }
+            if ($inARP) {
+                Log-Info "ScreenConnect AppData instance found but present in Add/Remove Programs  -  leaving alone"
+                continue
+            }
+
+            # Compare instance IDs
+            $isManaged = $managedID -and $instanceID -and ($instanceID -eq $managedID)
+            if ($isManaged) {
+                Log-Info "ScreenConnect AppData instance matches managed ID ($managedID)  -  OK"
+                continue
+            }
+
+            $idDisplay = if ($instanceID) { $instanceID } else { 'unknown' }
+            Log-IOC "ScreenConnect rogue instance  -  AppData install, NOT in Add/Remove Programs"
+            Log-IOC "  Path: $($scFolder.FullName)"
+            Log-IOC "  Instance ID: $idDisplay  -  does NOT match managed ID ($managedID)"
+            $Script:Counters.IOCsFound++
+
+            if ($removeRogue) {
+                # Stop and remove the associated service first
+                if ($svcKey) {
+                    $svcName = Split-Path $svcKey.PSPath -Leaf
+                    try {
+                        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+                        Start-Sleep -Milliseconds 500
+                        & sc.exe delete $svcName 2>$null | Out-Null
+                        Log-Success "Removed rogue ScreenConnect service: $svcName"
+                    } catch { Log-Warn "Could not remove service $svcName  -  $($_.Exception.Message)" }
+                }
+                # Delete the folder
+                try {
+                    Remove-Item -LiteralPath $scFolder.FullName -Recurse -Force -ErrorAction Stop
+                    Log-Success "Removed rogue ScreenConnect folder: $($scFolder.FullName)"
+                } catch { Log-Fail "Could not remove folder: $($scFolder.FullName)  -  $($_.Exception.Message)" }
+            }
+        }
+    }
+    if ($userProfiles.Count -gt 0 -and -not ($Script:Counters.IOCsFound)) {
+        Log-Info 'ScreenConnect  -  no rogue AppData instances found'
+    }
+} catch { Log-Info "ScreenConnect rogue check skipped  -  $($_.Exception.Message)" }
 
 # ==================================================================================================
 # PHASE 16: REBOOT REQUIREMENT CHECK
@@ -2291,10 +2586,11 @@ $Script:NetGainGB    = 0
 $Script:WindowsWroteGB = 0
 
 # Windows Temp
-Remove-FolderContents -Path "$env:SystemRoot\Temp" -Label 'Windows Temp'
+$_tempAge = if ($Script:Config.AggressiveTempClean) { $Script:Config.TempCleanAgeThresholdDays } else { 0 }
+Remove-FolderContents -Path "$env:SystemRoot\Temp" -Label 'Windows Temp' -OlderThanDays $_tempAge
 
 # Current user Temp
-Remove-FolderContents -Path "$env:LOCALAPPDATA\Temp" -Label 'User Temp (current user)'
+Remove-FolderContents -Path "$env:LOCALAPPDATA\Temp" -Label 'User Temp (current user)' -OlderThanDays $_tempAge
 
 # Windows Update cache  -  stop wuauserv + BITS + UsoSvc with extended wait
 try {
@@ -2384,7 +2680,7 @@ foreach ($profile in $Script:UserProfiles) {
 foreach ($profile in $Script:UserProfiles) {
     Remove-FolderContents `
         -Path ([System.IO.Path]::Combine($profile.FullName, 'AppData\Local\Temp')) `
-        -Label "User Temp ($($profile.Name))"
+        -Label "User Temp ($($profile.Name))" -OlderThanDays $_tempAge
 }
 
 # RECYCLE BIN INTENTIONALLY SKIPPED  -  user data risk, not safe for automated MSP deployment
@@ -2496,7 +2792,7 @@ Get-TempFolderStats -Path "$env:SystemRoot\Temp"   -Label 'Windows Temp'
 Get-TempFolderStats -Path "$env:LOCALAPPDATA\Temp" -Label 'Current User Temp'
 foreach ($profile in $Script:UserProfiles) {
     $utemp = [System.IO.Path]::Combine($profile.FullName, 'AppData\Local\Temp')
-    Get-TempFolderStats -Path $utemp -Label "User Temp ($($profile.Name))"
+    Get-TempFolderStats -Path $utemp -Label "User Temp ($($profile.Name))" -OlderThanDays $_tempAge
 }
 
 # ==================================================================================================
@@ -2621,6 +2917,10 @@ try {
         if ($Script:Config.AutoDisableExclusions -contains $u.Name) { continue }
         # Skip machine accounts (computer accounts ending in $)
         if ($u.Name -match '\$$') { continue }
+        # Skip QuickBooks service accounts
+        if ($u.Name -match '^QBDataServiceUser\d+$') { continue }
+        # Skip Windows system/imaging artifacts
+        if ($u.Name -match '^defaultuser\d*$') { continue }
         # Skip disabled accounts
         if (-not $u.Enabled) { continue }
 
@@ -2722,8 +3022,21 @@ try {
     if ($rdpEnabled) {
         $nla = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' `
                 -Name 'UserAuthentication' -ErrorAction SilentlyContinue).UserAuthentication
-        $nlaStr = if ($nla -eq 1) { 'NLA enforced (OK)' } else { 'NLA NOT enforced  -  REVIEW' }
-        Log-Warn "RDP is ENABLED  -  $nlaStr"
+        if ($nla -ne 1) {
+            if ($Script:Config.EnforceRDP_NLA) {
+                try {
+                    Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' `
+                                     -Name 'UserAuthentication' -Value 1 -Type DWord -Force
+                    Log-Harden "RDP NLA enforced  -  Network Level Authentication now required"
+                } catch {
+                    Log-Fail "RDP NLA enforcement failed  -  $($_.Exception.Message)"
+                }
+            } else {
+                Log-Warn "RDP is ENABLED  -  NLA NOT enforced  -  REVIEW"
+            }
+        } else {
+            Log-Warn "RDP is ENABLED  -  NLA enforced (OK)"
+        }
     } else {
         Log-Info "RDP  -  disabled (OK)"
     }
@@ -2731,12 +3044,22 @@ try {
     Log-Info "RDP check skipped  -  $($_.Exception.Message)"
 }
 
-# Legacy protocol detection
+# Legacy protocol detection and optional hardening
 try {
     # SMBv1
     $smb1 = Get-SmbServerConfiguration -ErrorAction Stop | Select-Object -ExpandProperty EnableSMB1Protocol
-    if ($smb1) { Log-Warn "SMBv1 is ENABLED  -  serious security risk, disable immediately" }
-    else { Log-Info "SMBv1  -  disabled (OK)" }
+    if ($smb1) {
+        if ($Script:Config.DisableSMBv1) {
+            try {
+                Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force -ErrorAction Stop
+                Log-Harden "SMBv1 disabled  -  serious security risk eliminated"
+            } catch {
+                Log-Fail "SMBv1 disable failed  -  $($_.Exception.Message)"
+            }
+        } else {
+            Log-Warn "SMBv1 is ENABLED  -  serious security risk, disable immediately"
+        }
+    } else { Log-Info "SMBv1  -  disabled (OK)" }
 } catch {
     Log-Info "SMBv1 check skipped  -  $($_.Exception.Message)"
 }
@@ -2745,8 +3068,20 @@ try {
     # LLMNR
     $llmnr = (Get-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient' `
               -Name 'EnableMulticast' -ErrorAction SilentlyContinue).EnableMulticast
-    if ($llmnr -ne 0) { Log-Warn "LLMNR may be enabled  -  recommend disabling via GPO" }
-    else { Log-Info "LLMNR  -  disabled via policy (OK)" }
+    if ($llmnr -ne 0) {
+        if ($Script:Config.DisableLLMNR) {
+            try {
+                $regPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient'
+                if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
+                Set-ItemProperty -Path $regPath -Name 'EnableMulticast' -Value 0 -Type DWord -Force
+                Log-Harden "LLMNR disabled via registry  -  MITM attack vector eliminated"
+            } catch {
+                Log-Fail "LLMNR disable failed  -  $($_.Exception.Message)"
+            }
+        } else {
+            Log-Warn "LLMNR may be enabled  -  recommend disabling via GPO"
+        }
+    } else { Log-Info "LLMNR  -  disabled via policy (OK)" }
 } catch { Log-Info "LLMNR check skipped" }
 
 try {
@@ -2765,9 +3100,9 @@ try {
 try {
     $auditOutput = & auditpol /get /subcategory:"Process Creation" 2>$null
     if ($auditOutput -match 'No Auditing') {
-        Log-Warn "Process creation auditing (4688) is NOT enabled  -  attempting to enable..."
+        Log-Info "Process creation auditing (4688) not enabled  -  enabling now..."
         $null = & auditpol /set /subcategory:"Process Creation" /success:enable 2>$null
-        Log-Success "Process creation auditing enabled  -  event 4688 will now log"
+        Log-Harden "Process creation auditing enabled  -  event 4688 will now log"
     } else {
         Log-Info "Process creation auditing (4688)  -  already enabled (OK)"
     }
@@ -2923,11 +3258,21 @@ Log-Info '--- Phase 27: Stale Profile Report ---'
 
 try {
     $staleThreshold = (Get-Date).AddDays(-180)
+    $sizeCalcLimit = 10  # Cap size calculation - too slow on machines with many large profiles
+    $sizeCalcCount = 0
     # Framework/system profiles that are never real user profiles
     $staleProfileExclusions = @(
         '.NET v4.5', '.NET v4.5 Classic', '.NET v2.0', '.NET v2.0 Classic',
-        'Classic .NET AppPool', 'DefaultAppPool', 'Public', 'Default', 'Default User'
+        'Classic .NET AppPool', 'DefaultAppPool', 'Public', 'Default', 'Default User',
+        'defaultuser0', 'defaultuser1', 'defaultuser100000'  # Windows imaging artifacts
     )
+    # Also exclude any defaultuser\d+ pattern dynamically
+    $profiles = @(Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue |
+                  Where-Object {
+                      $_.Name -notmatch '^(Public|Default|Default User|All Users)$' -and
+                      $_.Name -notmatch '^defaultuser\d+$' -and
+                      $staleProfileExclusions -notcontains $_.Name
+                  })
     $profiles = @(Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue |
                   Where-Object {
                       $_.Name -notmatch '^(Public|Default|Default User|All Users)$' -and
@@ -2936,15 +3281,73 @@ try {
     $staleProfiles = @()
     foreach ($p in $profiles) {
         $lastWrite = $p.LastWriteTime
-        $sizeGB    = [math]::Round((Get-FolderSizeBytes $p.FullName) / 1GB, 2)
         if ($lastWrite -lt $staleThreshold) {
             $daysOld = [math]::Round(((Get-Date) - $lastWrite).TotalDays)
-            $staleProfiles += "$($p.Name)  -  last activity: $($lastWrite.ToString('yyyy-MM-dd')) ($daysOld days ago) | Size: $sizeGB GB"
+            if ($sizeCalcCount -lt $sizeCalcLimit) {
+                $sizeGB = [math]::Round((Get-FolderSizeBytes $p.FullName) / 1GB, 2)
+                $sizeCalcCount++
+                $sizeStr = "$sizeGB GB"
+            } else {
+                $sizeStr = 'size not calculated'
+            }
+            $staleProfiles += "$($p.Name)  -  last activity: $($lastWrite.ToString('yyyy-MM-dd')) ($daysOld days ago) | Size: $sizeStr"
         }
     }
     if ($staleProfiles.Count -gt 0) {
         Log-Warn "Stale profiles (180+ days inactive)  -  $($staleProfiles.Count) found:"
         foreach ($sp in $staleProfiles) { Log-Warn "  $sp  -  REVIEW: consider removing" }
+
+        # Auto-delete if enabled and conditions met
+        $deleteActive = $Script:Config.DeleteStaleProfiles -and
+                        (-not $Script:HWInfo.IsServer -or $Script:Config.DeleteStaleProfileOnServer)
+
+        if ($deleteActive) {
+            $deleteThreshold = (Get-Date).AddDays(-$Script:Config.DeleteStaleProfileDays)
+            $deleteExclusions = @('Administrator','Guest','Default','Public','defaultuser0',
+                                  'DefaultAppPool') + $staleProfileExclusions
+            $deletionManifest = @()
+
+            foreach ($p in $profiles) {
+                if ($p.LastWriteTime -gt $deleteThreshold) { continue }
+                if ($deleteExclusions -contains $p.Name) { continue }
+                $sizeGB = [math]::Round((Get-FolderSizeBytes $p.FullName) / 1GB, 2)
+                if ($sizeGB -lt $Script:Config.DeleteStaleProfileMinSizeGB) { continue }
+
+                # Safety check - account must be disabled or not exist
+                $acct = Get-LocalUser -Name $p.Name -ErrorAction SilentlyContinue
+                $safeToDelete = (-not $acct) -or (-not $acct.Enabled)
+                if (-not $safeToDelete) {
+                    Log-Info "Stale profile skip (account still active): $($p.Name)"
+                    continue
+                }
+
+                try {
+                    Remove-Item -LiteralPath $p.FullName -Recurse -Force -ErrorAction Stop
+                    Log-Success "Deleted stale profile: $($p.Name) ($sizeGB GB, $([math]::Round(((Get-Date) - $p.LastWriteTime).TotalDays)) days inactive)"
+                    $Script:SpaceFreed += [long]($sizeGB * 1GB)
+                    $deletionManifest += [ordered]@{
+                        profile     = $p.Name
+                        path        = $p.FullName
+                        size_gb     = $sizeGB
+                        last_active = $p.LastWriteTime.ToString('yyyy-MM-dd')
+                        deleted_on  = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+                    }
+                } catch {
+                    Log-Fail "Could not delete stale profile: $($p.Name)  -  $($_.Exception.Message)"
+                }
+            }
+
+            # Save deletion manifest
+            if ($deletionManifest.Count -gt 0) {
+                $manifestPath = [System.IO.Path]::Combine($Script:Config.JsonDir,
+                    "ShellKnight_ProfileDeletions_$(Get-Date -Format 'yyyy-MM-dd_HHmm')_$env:COMPUTERNAME.json")
+                try {
+                    $manifestJson = $deletionManifest | ConvertTo-Json -Depth 3
+                    [System.IO.File]::WriteAllText($manifestPath, $manifestJson, [System.Text.Encoding]::UTF8)
+                    Log-Info "Profile deletion manifest saved: $manifestPath"
+                } catch { }
+            }
+        }
     } else {
         Log-Info "Stale profile report  -  no profiles inactive for 180+ days"
     }
@@ -3002,6 +3405,33 @@ if ($osEolWarn)                                 { $secScore -= 20 }
 if ($bitlockerWarn)                             { $secScore -= 15 }
 if ($wuLastWarn)                                { $secScore -= 15 }
 if ($inactiveAccounts.Count -gt 0)             { $secScore -= [math]::Min(15, $inactiveAccounts.Count * 5) }
+
+# RDP scoring
+$rdpEnabled = $false
+$nlaMissing = $false
+try {
+    $rdpEnabled = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' `
+                   -Name 'fDenyTSConnections' -ErrorAction Stop).fDenyTSConnections -eq 0
+    if ($rdpEnabled) {
+        $nla = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' `
+                -Name 'UserAuthentication' -ErrorAction SilentlyContinue).UserAuthentication
+        $nlaMissing = ($nla -ne 1)
+        if ($nlaMissing) { $secScore -= 15 } else { $secScore -= 5 }
+    }
+} catch { }
+
+# Password policy scoring
+try {
+    $passOut = & net accounts 2>$null
+    $minLen = ($passOut | Where-Object { $_ -match 'Minimum password length' }) -replace '[^\d]',''
+    if ($minLen) {
+        $minLenInt = [int]$minLen
+        if ($minLenInt -eq 0)       { $secScore -= 20 }
+        elseif ($minLenInt -lt 8)   { $secScore -= 10 }
+        elseif ($minLenInt -lt 12)  { $secScore -= 5  }
+    }
+} catch { }
+
 $secScore = [math]::Max(0, $secScore)
 
 # Performance score  -  deductions from 100
@@ -3151,7 +3581,7 @@ function Encode-Html {
 }
 
 function Build-HtmlReport {
-    $verdict        = if ($Script:Counters.IOCsFound -gt 0 -or $Script:Counters.Failed) { 'ShellKnight is Sweeping!' } else { 'ShellKnight: All Clear!' }
+    $verdict        = if ($Script:Counters.IOCsFound -gt 0 -or $Script:Counters.Failed) { 'ShellKnight: Action Required' } else { 'ShellKnight: All Clear!' }
     $verdictColor   = if ($verdict -eq 'ShellKnight: All Clear!') { '#1a7f37' } else { '#b45309' }
     $verdictBg      = if ($verdict -eq 'ShellKnight: All Clear!') { '#dcfce7' } else { '#fef9c3' }
     $runDate        = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
@@ -3317,7 +3747,7 @@ function Build-HtmlReport {
 # ==================================================================================================
 
 function Send-ShellKnightReport {
-    $verdict  = if ($Script:Counters.IOCsFound -gt 0 -or $Script:Counters.Failed) { 'ShellKnight is Sweeping!' } else { 'ShellKnight: All Clear!' }
+    $verdict  = if ($Script:Counters.IOCsFound -gt 0 -or $Script:Counters.Failed) { 'ShellKnight: Action Required' } else { 'ShellKnight: All Clear!' }
     $subject  = "ShellKnight $($Script:Config.Version)  -  $env:COMPUTERNAME  -  $verdict"
     $htmlBody = Build-HtmlReport
 
@@ -3590,19 +4020,23 @@ Write-Host "  PERFORMANCE GRADE:  $($Script:PerfGrade)  ($($Script:PerfScore)/10
 Write-Host ('  ' + ('=' * 76)) -ForegroundColor Cyan
 Write-Host ''
 if ($totalIssues -eq 0) {
+    $clearInner = '   ShellKnight: All Clear!'
+    $clearLine  = $clearInner.PadRight(74)
     Write-Host ('  ' + ('#' * 76)) -ForegroundColor Green
     Write-Host ('  #' + (' ' * 74) + '#') -ForegroundColor Green
-    Write-Host ('  #' + ('    ShellKnight: All Clear!'.PadRight(74)) + '#') -ForegroundColor Green
+    Write-Host "  #$clearLine#" -ForegroundColor Green
     Write-Host ('  #' + (' ' * 74) + '#') -ForegroundColor Green
     Write-Host ('  ' + ('#' * 76)) -ForegroundColor Green
 } else {
-    $issueStr = "ShellKnight is Sweeping!  -  $totalIssues issue(s) detected. Review report above."
-    $pad = ' ' * ([Math]::Max(0, 74 - $issueStr.Length))
-    Write-Host ('  ' + ('#' * 76))                                                                         -ForegroundColor Yellow
-    Write-Host ('  #' + (' ' * 74) + '#')                                                                  -ForegroundColor Yellow
-    Write-Host "  #   $issueStr$pad#"                                                                      -ForegroundColor Yellow
-    Write-Host ('  #' + (' ' * 74) + '#')                                                                  -ForegroundColor Yellow
-    Write-Host ('  ' + ('#' * 76))                                                                         -ForegroundColor Yellow
+    $issueMsg   = "   ShellKnight: Action Required  -  $totalIssues issue(s) detected. Review report above."
+    # Truncate to 74 chars if too long to keep border aligned
+    if ($issueMsg.Length -gt 74) { $issueMsg = $issueMsg.Substring(0, 71) + '...' }
+    $issueLine  = $issueMsg.PadRight(74)
+    Write-Host ('  ' + ('#' * 76)) -ForegroundColor Yellow
+    Write-Host ('  #' + (' ' * 74) + '#') -ForegroundColor Yellow
+    Write-Host "  #$issueLine#" -ForegroundColor Yellow
+    Write-Host ('  #' + (' ' * 74) + '#') -ForegroundColor Yellow
+    Write-Host ('  ' + ('#' * 76)) -ForegroundColor Yellow
 }
 Write-Host ''
 
